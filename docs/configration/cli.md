@@ -22,11 +22,12 @@ USAGE:
     [global options] command [command options] [arguments...]
 
 COMMANDS:
-     webscan  Run a webscan task
-     reverse  Run a standalone reverse server
-     genca    Generate CA certificate and key
-     version  Show version info
-     help, h  Shows a list of commands or help for one command
+     webscan    Run a webscan task
+     reverse    Run a standalone reverse server
+     genca      Generate CA certificate and key
+     subdomain  Run a subdomain task
+     version    Show version info
+     help, h    Shows a list of commands or help for one command
 
 GLOBAL OPTIONS:
    --config FILE      Load configuration from FILE
@@ -56,13 +57,37 @@ GLOBAL OPTIONS:
 
 ## COMMANDS
 
-xray 的命令有 5 个，抛开 `version` 和 `help` 这两个信息展示型的命令，还有 `webscan`, `reverse`, `genca` 三个。
+xray 的命令有 6 个，抛开 `version` 和 `help` 这两个信息展示型的命令，还有 `webscan`, `reverse`, `genca`, `subdomain` 四个。
 
 `reverse` 命令用于启动单独的盲打平台服务，盲打平台用于处理没有回显或延迟触发的问题，如果你挖过存储型 XSS，一定对这个不陌生。这部分内容相对独立，单独用一节来介绍。
 
 `genca` 用于快速生成一个根证书，主要用于被动代理扫描 HTTPS 流量时用到。
 
-`webscan` 是 xray 的重头戏，运行 `./xray_darwin_amd64 webscan -h`，可以看到
+`subdomain` 是子域名扫描的命令，仅**高级版**才有。
+
+`webscan` 是 xray 的重头戏。
+
+这里介绍一下后面两个命令。
+
+## subdomain 子域名扫描
+
+扫描 `example.com`，并将结果输出到 example.txt
+
+```
+./xray_darwin_amd64  subdomain --target example.com --text-output example.txt
+```
+
+扫描 `example.com`,并使用 console ui 交互式界面，同时记录结果到 example.txt
+
+```
+./xray_darwin_amd64  subdomain --target example.com --console-ui --text-output example.txt
+```
+![cui.svg](../assets/configuration/cui.svg)
+
+其他用法请参照 subdomain 配置文件中的内容
+
+## webscan web 漏洞检测
+运行 `./xray_darwin_amd64 webscan -h`，可以看到
 
 ```
 NAME:
@@ -91,7 +116,7 @@ OPTIONS:
 
 #### 配置扫描插件
 
-`--plugins` 配置本次扫描启用哪些插件, 不将使用配置文件中的配置
+`--plugins` 配置本次扫描启用哪些插件, 不再使用配置文件中的配置
 
 ```
 --plugins xss
@@ -146,11 +171,13 @@ a=b&x=y
 
 最后三个用于指定结果输出方式，这三种方式可以单独使用，也可以搭配使用。
 
-+ `--html-output` 将结果输出为 html 报告, [报告样例](https://chaitin.github.io/xray/assets/report_example.html)
++ `--html-output` 将结果输出为 html 报告, [报告样例](../assets/report_example.html)
 + `--webhook-output` 将结果发送到一个地址
 + `--json-output` 将结果输出到一个 json 文件中
 
-后两种的输出是 json 格式的结构化数据，数据格式参照: [漏洞格式](api/vuln.md)
+`--webhook-output`和`--json-output` 输出是 json 格式的结构化数据，数据格式参照: [漏洞格式](api/vuln.md)。
+
+你可以在`--json-output`和`--html-otput`参数中使用变量`__timestamp__`和` __datetime__`，这样文件名中对应位置会自动替换为时间戳或日期时间，避免输出到同一文件时报错。如`--html-output report-__datetime__.html`将使用`report-2019_11_01-10_03_26.html`作为报告文件名。
 
 
 ## 联合使用
@@ -173,4 +200,4 @@ a=b&x=y
 
 直接运行 xray 而不加任何参数即可启动交互式命令行。
 
-![ui](../assets/terminalui.svg)
+![ui](../assets/configuration/terminalui.svg)

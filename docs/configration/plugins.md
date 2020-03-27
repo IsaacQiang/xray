@@ -1,5 +1,20 @@
+在具体插件配置之前，plugins 部分有个顶级配置项为 `max_parallel`, 表示插件的并发度。举个例子，如果需要处理 3 个请求，此时启用了三个插件 sqldet, xss, cmd_injection, 当设置 `max_parallel` 为 1 时，处理过程为:
 
-配置文件中的 `plugins` 部分对应于插件的配置项，一个插件是一个配置单元，每个单元的基本格式为:
+```
+sqldet, xss, cmd_injection 同时处理 request1
+sqldet, xss, cmd_injection 同时处理 request2
+sqldet, xss, cmd_injection 同时处理 request3
+```
+
+当 `max_parallel` 设置为 3 时，处理过程为:
+
+```
+sql,xss,cmd_injection 同时并发(3并发)处理 request1, request2, request3
+```
+理论上时间会算缩短3倍，但这个值并非越大越好，高并发意味着同一时间发包数量大幅增加，这可能会影响远程 server 的运行和xray 对漏洞的判断，需要按需设置。默认值为 `10`
+
+
+对于其他配置项，一个插件是一个配置单元，每个单元的基本格式为:
 
 ```yaml
 pluginName:
@@ -11,7 +26,8 @@ pluginName:
 
 ### xss
 
-+ `ie_feature` 如果此项为 true，则会将一些只能在 IE 环境下复现的漏洞爆出来，小白请不要开。
++ `ie_feature` 如果此项为 true，则会将一些只能在 IE 环境下复现的漏洞爆出来，小白请不要开。主要包括 expression xss、hidden tag xss、utf-7 和 content type sniffing 导致的 xss （[参考链接](https://mp.weixin.qq.com/s?__biz=MzI5MzY2MzM0Mw==&mid=2247484070&idx=1&sn=673e20a08d9ae6c3de60ca48110b920a) 中的 `3. json`）。
++ `include_cookie` 如果此项为 true, 则会检查是否存在输入源在 cookie 中的 xss
 
 ### baseline 
 
